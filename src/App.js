@@ -1,103 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+import {CourseList} from './components/CourseList';
 
 // a component that shows the title
 const Banner = ({ title }) => (
   <h1>{ title }</h1>
 );
 
-
-const terms = { F: 'Fall', W: 'Winter', S: 'Spring'};
-
-
-// Gets the first letter of  the ID to match it to an element with the terms object
-const getCourseTerm = course => (
-  terms[course.id.charAt(0)]
-);
-
-// This gets the course number only for a respective course
-const getCourseNumber = course => (
-  course.id.slice(1, 4)
-);
-
-//This is used to omit a course that we no longer what selected
-const toggle = (x, lst) => (
-  lst.includes(x) ? lst.filter(y => y !== x) : [x, ...lst]
-);
-
-//checks for conflicts
-const hasConflict = (course, selected) => (
-  selected.some(selection => courseConflict(course, selection))
-);
-
-// This is the course component which renders the course term, course number and title
-const Course = ({ course,selected, setSelected }) => {
-  const isSelected = selected.includes(course);
-  const isDisabled = !isSelected && hasConflict(course, selected);
-  const style = {
-    backgroundColor: isDisabled? 'lightgrey' : isSelected ? 'lightgreen' : 'white'
-  };
-  return(
-  <div className='card m-1 p-2'
-  style={style}
-  onClick={isDisabled ? null : () =>  setSelected(toggle(course, selected))}>
-    <div className="card-body">
-      <div className="card-title">
-        <b>
-          <h4>
-            { getCourseTerm(course) } CS { getCourseNumber(course) }
-          </h4>
-        </b>
-      </div>
-      <div className="card-text">
-        { course.title }
-      </div>
-      <div className="card-text">
-        { course.meets }
-      </div>
-    </div>
-  </div>
-);
-  }
-
-//In JSX, you have to use htmlFor in a label instead of for because for is a reserved word in JavaScript.
-const TermButton = ({term, setTerm,checked}) => (
-  <>
-    <input type="radio" id={term} className="btn-check" autoComplete="off" checked={checked} onChange={() => setTerm(term)} />
-    <label class="btn btn-success m-1 p-2" htmlFor={term}>
-    { term }
-    </label>
-  </>
-);
-
-// This is the term selector which appears as a row of buttons
-// In Bootstrap, the CSS class btn-group can be used to make a row of butons.
-const TermSelector = ({term,setTerm}) => (
-  <div className="btn-group">
-  { 
-    Object.values(terms)
-      .map(value => <TermButton key={value} term={value} setTerm={setTerm} checked={value === term} />)
-  }
-  </div>
-);
-
-// CourseList is passed an object with course IDs and course data. Object.values gives access to them
-
-const CourseList = ({ courses }) => {
-  const [term, setTerm] = useState('Fall');
-  const [selected, setSelected] = useState([]);
-  const termCourses = Object.values(courses).filter(course => term === getCourseTerm(course));
-  
-  return (
-    <>
-      <TermSelector term={term} setTerm={setTerm} />
-      <div className="course-list">
-      { termCourses.map(course => <Course key={course.id} course={ course } selected={selected} setSelected={ setSelected } />) }
-      </div>
-   </>
-  );
-};
 
 
 
@@ -130,26 +40,6 @@ const addScheduleTimes = schedule => ({
 });
 
 
-
-//course conflict functions
-const days = ['M', 'Tu', 'W', 'Th', 'F'];
-
-const daysOverlap = (days1, days2) => ( 
-  days.some(day => days1.includes(day) && days2.includes(day))
-);
-
-const hoursOverlap = (hours1, hours2) => (
-  Math.max(hours1.start, hours2.start) < Math.min(hours1.end, hours2.end)
-);
-
-const timeConflict = (course1, course2) => (
-  daysOverlap(course1.days, course2.days) && hoursOverlap(course1.hours, course2.hours)
-);
-
-const courseConflict = (course1, course2) => (
-  getCourseTerm(course1) === getCourseTerm(course2)
-  && timeConflict(course1, course2)
-);
 
 
 // This function gets the schedule JSON data and stores it using setschedule. await and async are used because fetch and response.json are asynchronous functions meaning that they ,ust use await and async to allow our code to use the data when it finally arrives without having to make the browser stop and wait.
